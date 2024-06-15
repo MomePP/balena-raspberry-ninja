@@ -1,0 +1,14 @@
+version: '2.1'
+
+services:
+  gogo-remote-ninja:
+    build: ./balena-rpi-ninja
+    restart: always
+    privileged: true
+    network_mode: host
+    # labels:
+    #   io.balena.features.kernel-modules: '1'
+    #   io.balena.features.firmware: '1'
+    # group_add:
+    #   - video
+
