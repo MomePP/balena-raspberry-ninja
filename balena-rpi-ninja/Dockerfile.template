@@ -1,54 +1,48 @@
-FROM balenalib/raspberrypi5-debian-python:latest-bookworm
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-python:3.11-bookworm-run
 
-RUN apt-get update && apt upgrade -yq
+RUN apt update && apt upgrade -y
 
 RUN install_packages \
-    # python3 \
-    python3-pkgconfig python3-pip python3-jinja2 python3-yaml python3-ply \
     git build-essential gcc cmake meson pkg-config ninja-build v4l-utils \
+    python3-pkgconfig python3-pip python3-jinja2 python3-yaml python3-ply \
+    libx264-dev libcamera-v4l2 libcamera-tools \
     libdrm-dev libexif-dev libjpeg-dev libpng-dev \
     libboost-program-options-dev libboost-dev libgnutls28-dev openssl libtiff5-dev pybind11-dev \
-    qtbase5-dev libqt5core5a libqt5gui5 libqt5widgets5 \
-    libglib2.0-dev libgstreamer-plugins-base1.0-dev
-
+    libcairo-dev libv4l-dev libv4l-0 libcamera-dev \
+    libavcodec-dev libavdevice-dev libavformat-dev libswresample-dev \
+    libglib2.0-dev libgstreamer-plugins-base1.0-dev v4l-utils
 
 # INFO: build libcamera
-RUN git clone https://github.com/raspberrypi/libcamera.git /opt/libcamera
+RUN git clone --depth=1 https://github.com/raspberrypi/libcamera.git /opt/libcamera
 WORKDIR /opt/libcamera
 RUN meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=true -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=disabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled
 RUN ninja -C build
 RUN ninja -C build install
-RUN rm -rf /opt/libcamera
-
-# INFO: build rpicam-apps
-RUN git clone https://github.com/raspberrypi/rpicam-apps.git /opt/rpicam-apps
-WORKDIR /opt/rpicam-apps
-RUN meson setup build -Denable_libav=disabled -Denable_drm=enabled -Denable_egl=disabled -Denable_qt=disabled -Denable_opencv=disabled -Denable_tflite=disabled
-RUN meson compile -C build
-RUN meson install -C build
-RUN rm -rf /opt/rpicam-apps
-
-# INFO: install raspberry_ninja dependencies
-RUN rm /usr/lib/python3.11/EXTERNALLY-MANAGED
-RUN install_packages libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev libcairo-dev libv4l-0 \
-        gstreamer1.0-plugins-base-apps gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-        gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-qt5 gstreamer1.0-gtk3 gstreamer1.0-pulseaudio gstreamer1.0-nice \
-        python3-pyqt5 python3-opengl python3-cryptography python3-websockets python3-gi
 
 # INFO: add shared libs default path
 RUN export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib
 RUN ldconfig
 
+# INFO: install raspberry_ninja deps.
+RUN install_packages libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x python3-pyqt5 python3-opengl gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-pulseaudio gstreamer1.0-nice gstreamer1.0-plugins-base-apps
+RUN install_packages libcairo-dev libgirepository1.0-dev
+RUN install_packages python3-websockets python3-cryptography python3-gi
+RUN install_packages gstreamer1.0-libcamera
+
+# INFO: cleaup ..
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # INFO: application setup ...
 ENV UDEV=on
-# RUN usermod -a -G video root
+ENV GST_PLUGIN_PATH=/opt/libcamera/build/src/gstreamer
 
 WORKDIR /usr/src/app
-COPY ./app/ /usr/src/app/
+COPY ./app/ ./
 RUN git clone --depth=1 https://github.com/steveseguin/raspberry_ninja
-
 CMD ["python3", "/usr/src/app/main.py"]
 
-# COPY start.sh ./
+# COPY ./start.sh ./
 # RUN chmod +x start.sh
 # CMD ["sh","./start.sh"]
+
+# CMD ["balena-idle"]
