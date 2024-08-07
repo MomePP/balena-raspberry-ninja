@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     if not 'stream_id' in os.environ or os.environ['stream_id'] == 'vdo.ninja-id':
         print("error: stream_id is not set in environment variable")
-        exit(1)
+        subprocess.run("balena-idle")
     
     stream_params.extend(['--streamid', os.environ['stream_id']])
 

@@ -1,0 +1,27 @@
+[Unit]
+Description=Raspberry Ninja as a system service
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+# Run as 'vdo' user and group, ensure this user has the necessary permissions
+# You may need to change this if you are using a different login name
+User=pi
+Group=pi
+
+# Using 'simple' type for immediate start-up, consider if 'idle' is necessary
+Type=simple
+
+# Sleep to ensure all dependencies are up
+ExecStartPre=/bin/sleep 5
+
+# Main command to start the service, adjust path and options as necessary
+# Be sure to change the stream ID and you may need to change /vdo/ to /pi/ or such as needed
+ExecStart=/usr/bin/python3 /home/pi/raspberry_ninja/publish.py --streamid zdHJnwF --libcamera --noaudio --multiviewer
+
+# Restart policy
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
