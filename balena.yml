@@ -12,7 +12,7 @@ assets:
       url: ''        
 data:
   applicationEnvironmentVariables:
-    - stream_params: "['--noaudio', '--multiviewer', '--libcamera']"
+    - stream_params: "['--framerate', '50', '--noaudio', '--multiviewer', '--libcamera']"
   applicationConfigVariables:
     - BALENA_HOST_CONFIG_start_x: 1
     - BALENA_HOST_CONFIG_gpu_mem: 448
@@ -26,4 +26,4 @@ data:
   defaultDeviceType: raspberrypi5
   supportedDeviceTypes:
     - raspberrypi5
-version: 0.2.1
+version: 0.2.3
