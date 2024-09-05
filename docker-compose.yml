@@ -11,4 +11,15 @@ services:
     #   io.balena.features.firmware: '1'
     # group_add:
     #   - video
+  restart-service:
+    build: ./restart-service
+    # environment:
+    #   - 'DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket'
+    labels:
+      io.balena.features.dbus: '1'
+      io.balena.features.supervisor-api: '1'
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "sleep 2h && curl --header \"Content-Type:application/json\" \"$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/restart-service?apikey=$BALENA_SUPERVISOR_API_KEY\" -d '{\"serviceName\": \"gogo-remote-ninja\"}'"
 
